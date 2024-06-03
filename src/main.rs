@@ -29,10 +29,12 @@ fn main() {
     match args {
         ParseResult::Values(values) => {
             let i_p = get_i_p(values.period, values.i_rate);
-            // let pmt = get_pmt();
-            // let total_cost = get_total_cost(i_p, get_pmt);
+            let pmt = get_pmt(values.amount, i_p, values.period);
+            let total = get_total_cost(pmt, values.period);
+
+            print_result(values.amount, total, pmt);
         }
-        ParseResult::Error(_) => {}
+        ParseResult::Error(_) => help(),
     }
 }
 
@@ -51,7 +53,6 @@ fn parse_command_line_args() -> ParseResult {
     args.remove(0); // Remove the fist argument because it is the current path
 
     if args.len() % 2 != 0 {
-        help();
         return ParseResult::Error(true);
     }
 
@@ -73,7 +74,6 @@ fn parse_command_line_args() -> ParseResult {
         if kv.key == AMOUNT_OPTIONS {
             let value = string_to_float(kv.value.clone());
             if value == 0.0 {
-                help();
                 return ParseResult::Error(true);
             }
 
@@ -83,7 +83,6 @@ fn parse_command_line_args() -> ParseResult {
         if kv.key == INTERES_RATE_OPTION {
             let value = string_to_float(kv.value.clone());
             if value == 0.0 {
-                help();
                 return ParseResult::Error(true);
             }
 
@@ -93,7 +92,6 @@ fn parse_command_line_args() -> ParseResult {
         if kv.key == PERIOD_OPTION {
             let value = string_to_float(kv.value.clone());
             if value == 0.0 {
-                help();
                 return ParseResult::Error(true);
             }
 
@@ -129,6 +127,23 @@ fn get_i_p(p: f64, i: f64) -> f64 {
 
 fn get_pmt(a: f64, i_p: f64, p: f64) -> f64 {
     return (a * i_p) / (1.0 - (1.0 + i_p).powf(-p));
+}
+
+fn get_total_cost(pmt: f64, p: f64) -> f64 {
+    return pmt * p;
+}
+
+fn print_result(inicial: f64, total: f64, pmt: f64) {
+    println!(
+        r#"
+Total: {}
+Costo/Ganancia: {}
+Pagos periodicos: {}
+            "#,
+        total,
+        total - inicial,
+        pmt
+    );
 }
 
 fn help() {
