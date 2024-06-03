@@ -38,7 +38,7 @@ fn main() {
 
     if args.len() != 5 {
         eprintln!(
-            "Uso: {} <capital_inicial> <interes_efectivo_anual> <periodo_de_pago>",
+            "Uso: {} <capital_inicial> <interes_efectivo_anual> <periodo_de_pago> <años>",
             args[0]
         );
         process::exit(1);
@@ -53,6 +53,9 @@ fn main() {
         / 100.0; // Convertir porcentaje a decimal
     let periodo_de_pago = Period::from_str(&args[3])
         .expect("El periodo de pago debe ser uno de: año, semestre, mes, semana, día.");
+    let years = args[4]
+        .parse::<f64>()
+        .expect("La cantidad de años debe ser un número");
 
     // Número de periodos por año
     let periodos_por_año = periodo_de_pago.periods_per_year();
@@ -61,8 +64,7 @@ fn main() {
     let tasa_periodica = (1.0 + interes_efectivo_anual).powf(1.0 / periodos_por_año) - 1.0;
 
     // Número total de periodos (usamos 1 año para simplicidad)
-    // @todo permitir ingresar el numero de años
-    let num_periodos = 1.0 * periodos_por_año;
+    let num_periodos = years * periodos_por_año;
 
     // Calcular el valor final y las ganancias/costos totales
     let valor_final = capital_inicial * (1.0 + tasa_periodica).powf(num_periodos);
