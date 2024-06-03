@@ -123,8 +123,12 @@ fn string_to_float(string_value: String) -> f64 {
     }
 }
 
-pub fn get_i_p(p: f64, i: f64) -> f64 {
+fn get_i_p(p: f64, i: f64) -> f64 {
     return (1.0 + (i / 100.0)).powf(1.0 / p) - 1.0;
+}
+
+fn get_pmt(a: f64, i_p: f64, p: f64) -> f64 {
+    return (a * i_p) / (1.0 - (1.0 + i_p).powf(-p));
 }
 
 fn help() {
@@ -145,19 +149,28 @@ Example:
     println!("{}", help_message);
 }
 
-//
-// Tests
-//
+// ****************************************************************
+// **** Tests
+// ****************************************************************
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    static A: f64 = 10000.0; // Monto del prestamos
+    static P: f64 = 12.0; // 12 pagos anuales
+    static I: f64 = 12.0; // 12% de interes efectivo anual
+
     #[test]
     fn test_get_i_p() {
-        let p = 12.0; // 12 pagos anuales
-        let i = 12.0; // 12% de interes efectivo anual
-        let result = get_i_p(p, i); // tasa de interes periodica
+        let result = get_i_p(P, I); // tasa de interes periodica
         assert_eq!(result, 0.009488792934583046);
+    }
+
+    #[test]
+    fn test_get_pmt() {
+        let i_p = get_i_p(P, I);
+        let result = get_pmt(A, i_p, P); // pago periodico
+        assert_eq!(result, 885.6206738944115);
     }
 }
