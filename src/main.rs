@@ -25,7 +25,15 @@ static PERIOD_OPTION: &str = "-p";
 
 fn main() {
     let args = parse_command_line_args();
-    println!("{:?}", args)
+
+    match args {
+        ParseResult::Values(values) => {
+            let i_p = get_i_p(values.period, values.i_rate);
+            // let pmt = get_pmt();
+            // let total_cost = get_total_cost(i_p, get_pmt);
+        }
+        ParseResult::Error(_) => {}
+    }
 }
 
 fn parse_command_line_args() -> ParseResult {
@@ -48,12 +56,12 @@ fn parse_command_line_args() -> ParseResult {
     }
 
     let kv_pairs = get_kv(args);
-
     let mut parsed_args = IEAValues {
         amount: 0.0,
         i_rate: 0.0,
         period: 0.0,
     };
+
     for kv in kv_pairs {
         /*
          * In Rust, values are owned by a single variable, and when they are assigned
@@ -108,13 +116,24 @@ fn get_kv(args: Vec<String>) -> Vec<KeyValueArg> {
     return kv_vec;
 }
 
+fn string_to_float(string_value: String) -> f64 {
+    match string_value.to_string().parse::<f64>() {
+        Ok(value) => value,
+        Err(_) => 0.0,
+    }
+}
+
+pub fn get_i_p(p: f64, i: f64) -> f64 {
+    return (1.0 + (i / 100.0)).powf(1.0 / p) - 1.0;
+}
+
 fn help() {
     // value of literal (truncated up to newline):
     let help_message: &str = r#"
 Usage: iea [OPTIONS]
 
 Options:
-    -p The payment period. Supported values are one of those: day, month, year 
+    -p The number of payments pear year 
     -a The amount of money to calculate the interest over
     -i The interest rate percentage. For example: 12.5
 
@@ -126,9 +145,19 @@ Example:
     println!("{}", help_message);
 }
 
-fn string_to_float(string_value: String) -> f64 {
-    match string_value.to_string().parse() {
-        Ok(value) => value,
-        Err(_) => 0.0,
+//
+// Tests
+//
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_i_p() {
+        let p = 12.0; // 12 pagos anuales
+        let i = 12.0; // 12% de interes efectivo anual
+        let result = get_i_p(p, i); // tasa de interes periodica
+        assert_eq!(result, 0.009488792934583046);
     }
 }
